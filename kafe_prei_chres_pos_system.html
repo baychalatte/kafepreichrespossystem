@@ -1,0 +1,1235 @@
+
+<html lang="km" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>កាហ្វេព្រៃច្រេស - Coffee Shop POS</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Khmer & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruuy+Pro:ital,wght@0,300..700;1,300..700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        coffee: {
+                            50: '#fdfbf7',
+                            100: '#f7f0e6',
+                            200: '#e8d8c3',
+                            300: '#d7bbb0',
+                            400: '#a17866',
+                            500: '#8d5b43',
+                            600: '#6f4e37',
+                            700: '#5a3d2b',
+                            800: '#4a2c11',
+                            900: '#2d1806',
+                        },
+                        amberAccent: '#d97706',
+                        darkBg: '#18110c',
+                        darkCard: '#261b15'
+                    },
+                    fontFamily: {
+                        khmer: ['"Kantumruuy Pro"', 'sans-serif'],
+                        sans: ['"Plus Jakarta Sans"', '"Kantumruuy Pro"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', 'Kantumruuy Pro', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(111, 78, 55, 0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(141, 91, 67, 0.4);
+            border-radius: 4px;
+        }
+
+        /* Thermal Printer Slip Formatting */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #thermal-receipt-print, #thermal-receipt-print * {
+                visibility: visible;
+            }
+            #thermal-receipt-print {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 80mm;
+                margin: 0;
+                padding: 10px;
+                background: #fff !important;
+                color: #000 !important;
+                font-family: monospace;
+                font-size: 12px;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        .receipt-paper {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #fff;
+            color: #111;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body class="bg-coffee-50 dark:bg-darkBg text-coffee-900 dark:text-gray-100 h-full flex flex-col font-khmer transition-colors duration-200">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="bg-white dark:bg-darkCard border-b border-coffee-200 dark:border-coffee-900 h-16 px-4 flex items-center justify-between shrink-0 z-10 shadow-sm">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-coffee-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
+                <i class="fa-solid fa-mug-hot"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold leading-tight text-coffee-800 dark:text-coffee-200">កាហ្វេព្រៃច្រេស</h1>
+                <p class="text-xs text-coffee-500 dark:text-coffee-400">Kafe Prei Chres POS System</p>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex items-center bg-coffee-100 dark:bg-coffee-900/60 p-1 rounded-xl text-sm font-medium">
+            <button onclick="switchTab('pos')" id="tab-btn-pos" class="px-4 py-2 rounded-lg flex items-center space-x-2 transition-all bg-white dark:bg-coffee-700 text-coffee-800 dark:text-white shadow-sm">
+                <i class="fa-solid fa-cash-register"></i>
+                <span class="hidden sm:inline">លក់ (POS)</span>
+            </button>
+            <button onclick="switchTab('orders')" id="tab-btn-orders" class="px-4 py-2 rounded-lg flex items-center space-x-2 transition-all text-coffee-700 dark:text-coffee-300 hover:text-coffee-900">
+                <i class="fa-solid fa-list-check"></i>
+                <span class="hidden sm:inline">បញ្ជីការកុម្ម៉ង់</span>
+            </button>
+            <button onclick="switchTab('products')" id="tab-btn-products" class="px-4 py-2 rounded-lg flex items-center space-x-2 transition-all text-coffee-700 dark:text-coffee-300 hover:text-coffee-900">
+                <i class="fa-solid fa-boxes-stacked"></i>
+                <span class="hidden sm:inline">គ្រប់គ្រងមុខទំនិញ</span>
+            </button>
+            <button onclick="switchTab('reports')" id="tab-btn-reports" class="px-4 py-2 rounded-lg flex items-center space-x-2 transition-all text-coffee-700 dark:text-coffee-300 hover:text-coffee-900">
+                <i class="fa-solid fa-chart-line"></i>
+                <span class="hidden sm:inline">របាយការណ៍</span>
+            </button>
+            <button onclick="switchTab('settings')" id="tab-btn-settings" class="px-4 py-2 rounded-lg flex items-center space-x-2 transition-all text-coffee-700 dark:text-coffee-300 hover:text-coffee-900">
+                <i class="fa-solid fa-gear"></i>
+                <span class="hidden sm:inline">ការកំណត់</span>
+            </button>
+        </nav>
+
+        <!-- Right Controls -->
+        <div class="flex items-center space-x-2">
+            <button id="bt-connect-btn" onclick="connectBluetoothPrinter()" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-coffee-300 dark:border-coffee-700 text-xs font-semibold text-coffee-700 dark:text-coffee-300 hover:bg-coffee-100 dark:hover:bg-coffee-900/50 transition">
+                <i id="bt-icon" class="fa-solid fa-print text-coffee-400"></i>
+                <span id="bt-status" class="hidden md:inline">ភ្ជាប់ម៉ាស៊ីនពុម្ព Bluetooth</span>
+            </button>
+
+            <button onclick="toggleDarkMode()" class="p-2 rounded-lg border border-coffee-300 dark:border-coffee-700 text-coffee-700 dark:text-coffee-300 hover:bg-coffee-100 dark:hover:bg-coffee-900">
+                <i class="fa-solid fa-moon dark:hidden"></i>
+                <i class="fa-solid fa-sun hidden dark:inline text-amber-400"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN APP CONTENT -->
+    <main class="flex-1 overflow-hidden relative">
+
+        <!-- VIEW 1: POS SYSTEM -->
+        <section id="view-pos" class="h-full flex flex-col md:flex-row overflow-hidden">
+            <!-- Left: Product Catalog -->
+            <div class="flex-1 flex flex-col h-full overflow-hidden border-r border-coffee-200 dark:border-coffee-900">
+                <div class="p-4 bg-white dark:bg-darkCard space-y-3 border-b border-coffee-200 dark:border-coffee-900 shrink-0">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-coffee-400"></i>
+                        <input type="text" id="product-search" oninput="renderPOSProducts()" placeholder="ស្វែងរកភេសជ្ជៈ ឬអាហារ..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-coffee-200 dark:border-coffee-800 bg-coffee-50 dark:bg-coffee-900/40 focus:outline-none focus:ring-2 focus:ring-coffee-500 text-sm">
+                    </div>
+                    <div id="category-pills" class="flex space-x-2 overflow-x-auto pb-1 text-sm no-scrollbar">
+                        <!-- Dynamic Categories -->
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-4">
+                    <div id="pos-products-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <!-- Dynamic Products -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Order Cart -->
+            <div class="w-full md:w-[400px] lg:w-[450px] bg-white dark:bg-darkCard h-full flex flex-col shrink-0 shadow-lg border-l border-coffee-200 dark:border-coffee-900">
+                <div class="p-4 border-b border-coffee-200 dark:border-coffee-900 flex items-center justify-between">
+                    <div>
+                        <h2 class="font-bold text-coffee-900 dark:text-gray-100 flex items-center gap-2">
+                            <i class="fa-solid fa-cart-shopping text-coffee-600"></i>
+                            កុម្ម៉ង់បច្ចុប្បន្ន
+                        </h2>
+                        <span id="order-number-display" class="text-xs text-coffee-500">Order #0000</span>
+                    </div>
+                    
+                    <div class="flex bg-coffee-100 dark:bg-coffee-900/60 p-1 rounded-lg text-xs font-semibold">
+                        <button id="type-dinein" onclick="setOrderType('Dine-in')" class="px-3 py-1.5 rounded-md bg-white dark:bg-coffee-600 text-coffee-800 dark:text-white shadow-sm">ញ៉ាំនៅទីនេះ</button>
+                        <button id="type-takeaway" onclick="setOrderType('Takeaway')" class="px-3 py-1.5 rounded-md text-coffee-700 dark:text-coffee-300">ខ្ចប់ទៅផ្ទះ</button>
+                    </div>
+                </div>
+
+                <div id="cart-items-container" class="flex-1 overflow-y-auto p-4 space-y-3">
+                    <!-- Cart items -->
+                </div>
+
+                <div class="p-4 bg-coffee-50 dark:bg-coffee-900/30 border-t border-coffee-200 dark:border-coffee-900 space-y-3">
+                    <div class="space-y-1.5 text-sm">
+                        <div class="flex justify-between text-coffee-600 dark:text-coffee-400">
+                            <span>សរុបរង (Subtotal):</span>
+                            <span id="cart-subtotal" class="font-semibold">0 ៛</span>
+                        </div>
+                        <div class="flex justify-between items-center text-coffee-600 dark:text-coffee-400">
+                            <span class="flex items-center gap-1">
+                                បញ្ចុះតម្លៃ (Discount):
+                                <button onclick="promptDiscount()" class="text-xs text-coffee-600 dark:text-coffee-400 underline font-medium">(កែប្រែ)</button>
+                            </span>
+                            <span id="cart-discount" class="font-semibold text-red-500">-0 ៛</span>
+                        </div>
+                        <div class="flex justify-between text-base font-bold text-coffee-900 dark:text-white pt-2 border-t border-coffee-200 dark:border-coffee-800">
+                            <span>ទឹកប្រាក់សរុប:</span>
+                            <span id="cart-total" class="text-coffee-700 dark:text-coffee-300 text-xl">0 ៛</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <button onclick="clearCart()" class="py-2.5 px-4 rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 font-semibold hover:bg-red-50 dark:hover:bg-red-950/30 transition text-sm">
+                            <i class="fa-solid fa-trash-can mr-1"></i> លុបចោល
+                        </button>
+                        <button onclick="openPaymentModal()" class="py-2.5 px-4 rounded-xl bg-coffee-600 hover:bg-coffee-700 text-white font-bold transition shadow-md flex items-center justify-center gap-2 text-sm">
+                            <i class="fa-solid fa-money-bill-wave"></i> ទូទាត់ប្រាក់
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 2: ORDER HISTORY -->
+        <section id="view-orders" class="h-full p-4 md:p-6 overflow-y-auto hidden">
+            <div class="max-w-6xl mx-auto space-y-4">
+                <div>
+                    <h2 class="text-xl font-bold text-coffee-900 dark:text-coffee-100">ប្រវត្តិការលក់ / បញ្ជីកុម្ម៉ង់</h2>
+                    <p class="text-sm text-coffee-500">ការបញ្ជាទិញទាំងអស់ដែលបានកត់ត្រាក្នុងប្រព័ន្ធ</p>
+                </div>
+
+                <div class="bg-white dark:bg-darkCard rounded-2xl shadow-sm border border-coffee-200 dark:border-coffee-900 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-coffee-50 dark:bg-coffee-900/50 text-coffee-700 dark:text-coffee-300 font-semibold">
+                                <tr>
+                                    <th class="p-4">លេខវិក្កយបត្រ</th>
+                                    <th class="p-4">កាលបរិច្ឆេទ/ម៉ោង</th>
+                                    <th class="p-4">ប្រភេទ</th>
+                                    <th class="p-4">មុខទំនិញ</th>
+                                    <th class="p-4">វិធីសាស្រ្តទូទាត់</th>
+                                    <th class="p-4 text-right">ប្រាក់សរុប</th>
+                                    <th class="p-4 text-center">សកម្មភាព</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table-body" class="divide-y divide-coffee-100 dark:divide-coffee-900">
+                                <!-- Order history -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 3: PRODUCT MANAGEMENT -->
+        <section id="view-products" class="h-full p-4 md:p-6 overflow-y-auto hidden">
+            <div class="max-w-6xl mx-auto space-y-6">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-coffee-900 dark:text-coffee-100">គ្រប់គ្រងផលិតផល & តម្លៃ</h2>
+                        <p class="text-sm text-coffee-500">បន្ថែម កែប្រើតម្លៃ ឬលុបមុខម្ហូប និងភេសជ្ជៈ</p>
+                    </div>
+                    <button onclick="openProductModal()" class="px-4 py-2.5 bg-coffee-600 text-white font-semibold rounded-xl hover:bg-coffee-700 shadow-md flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> បន្ថែមភេសជ្ជៈថ្មី
+                    </button>
+                </div>
+
+                <!-- Editable Products Table -->
+                <div class="bg-white dark:bg-darkCard rounded-2xl shadow-sm border border-coffee-200 dark:border-coffee-900 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-coffee-50 dark:bg-coffee-900/50 text-coffee-700 dark:text-coffee-300 font-semibold">
+                                <tr>
+                                    <th class="p-4">រូបភាព</th>
+                                    <th class="p-4">ឈ្មោះភេសជ្ជៈ</th>
+                                    <th class="p-4">ប្រភេទ</th>
+                                    <th class="p-4">តម្លៃ (KHR)</th>
+                                    <th class="p-4 text-center">សកម្មភាព (Actions)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="manage-products-table" class="divide-y divide-coffee-100 dark:divide-coffee-900">
+                                <!-- Dynamic products editable list -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 4: REPORTS -->
+        <section id="view-reports" class="h-full p-4 md:p-6 overflow-y-auto hidden">
+            <div class="max-w-6xl mx-auto space-y-6">
+                <div>
+                    <h2 class="text-xl font-bold text-coffee-900 dark:text-coffee-100">របាយការណ៍លក់ និងចំណូល</h2>
+                    <p class="text-sm text-coffee-500">ការសង្ខេបប្រតិបត្តិការអាជីវកម្មប្រចាំថ្ងៃ</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="p-5 rounded-2xl bg-white dark:bg-darkCard border border-coffee-200 dark:border-coffee-900 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-coffee-100 text-coffee-600 dark:bg-coffee-900/60 dark:text-coffee-300 flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-sack-dollar"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-coffee-500 uppercase font-medium">ចំណូលសរុប</p>
+                            <h3 id="report-total-revenue" class="text-xl font-bold text-coffee-900 dark:text-white">0 ៛</h3>
+                        </div>
+                    </div>
+
+                    <div class="p-5 rounded-2xl bg-white dark:bg-darkCard border border-coffee-200 dark:border-coffee-900 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300 flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-receipt"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-coffee-500 uppercase font-medium">ចំនួនប្រវត្តិលក់</p>
+                            <h3 id="report-total-orders" class="text-xl font-bold text-coffee-900 dark:text-white">0</h3>
+                        </div>
+                    </div>
+
+                    <div class="p-5 rounded-2xl bg-white dark:bg-darkCard border border-coffee-200 dark:border-coffee-900 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-money-bill-wave"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-coffee-500 uppercase font-medium">ទូទាត់សាច់ប្រាក់ (Cash)</p>
+                            <h3 id="report-cash-total" class="text-xl font-bold text-coffee-900 dark:text-white">0 ៛</h3>
+                        </div>
+                    </div>
+
+                    <div class="p-5 rounded-2xl bg-white dark:bg-darkCard border border-coffee-200 dark:border-coffee-900 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-300 flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-qrcode"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-coffee-500 uppercase font-medium">ទូទាត់ KHQR / ធនាគារ</p>
+                            <h3 id="report-khqr-total" class="text-xl font-bold text-coffee-900 dark:text-white">0 ៛</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-darkCard rounded-2xl shadow-sm border border-coffee-200 dark:border-coffee-900 p-5">
+                    <h3 class="font-bold text-coffee-900 dark:text-coffee-100 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-fire text-amber-600"></i>
+                        ភេសជ្ជៈលក់ដាច់បំផុត (Top Selling Items)
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-coffee-50 dark:bg-coffee-900/50 text-coffee-700 dark:text-coffee-300">
+                                <tr>
+                                    <th class="p-3">ឈ្មោះភេសជ្ជៈ</th>
+                                    <th class="p-3">ចំនួនលក់បាន (កែវ)</th>
+                                    <th class="p-3 text-right">ចំណូលទទួលបាន</th>
+                                </tr>
+                            </thead>
+                            <tbody id="top-items-tbody" class="divide-y divide-coffee-100 dark:divide-coffee-900">
+                                <!-- Top items -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 5: SETTINGS -->
+        <section id="view-settings" class="h-full p-4 md:p-6 overflow-y-auto hidden">
+            <div class="max-w-3xl mx-auto space-y-6">
+                <div>
+                    <h2 class="text-xl font-bold text-coffee-900 dark:text-coffee-100">ការកំណត់ប្រព័ន្ធ និងទិន្នន័យ</h2>
+                    <p class="text-sm text-coffee-500">គ្រប់គ្រងការតភ្ជាប់ ម៉ាស៊ីនពុម្ព និងការចែករំលែកទិន្នន័យ Laptop / Tablet</p>
+                </div>
+
+                <div class="bg-white dark:bg-darkCard p-5 rounded-2xl shadow-sm border border-coffee-200 dark:border-coffee-900 space-y-4">
+                    <h3 class="font-bold text-coffee-900 dark:text-coffee-100 flex items-center gap-2">
+                        <i class="fa-solid fa-print text-coffee-600"></i>
+                        ការកំណត់ម៉ាស៊ីនពុម្ពវិក្កយបត្រ (Receipt Thermal Printer)
+                    </h3>
+                    <p class="text-sm text-coffee-600 dark:text-coffee-400">
+                        ប្រព័ន្ធ POS នេះគាំទ្រការភ្ជាប់ម៉ាស៊ីនពុម្ព Bluetooth Thermal Printer (ESC/POS 58mm/80mm) ដោយផ្ទាល់ ឬប្រើប្រាស់ Standard Browser Print Dialogue។
+                    </p>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="connectBluetoothPrinter()" class="px-4 py-2.5 bg-coffee-600 text-white text-sm font-semibold rounded-xl hover:bg-coffee-700 transition flex items-center gap-2">
+                            <i class="fa-solid fa-bluetooth"></i> ភ្ជាប់ Bluetooth ESC/POS Printer
+                        </button>
+                        <button onclick="testPrinter()" class="px-4 py-2.5 border border-coffee-300 dark:border-coffee-700 text-sm font-semibold rounded-xl hover:bg-coffee-100 dark:hover:bg-coffee-900 transition">
+                            <i class="fa-solid fa-vial"></i> សាកល្បងពុម្ព (Test Print)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-darkCard p-5 rounded-2xl shadow-sm border border-coffee-200 dark:border-coffee-900 space-y-4">
+                    <h3 class="font-bold text-coffee-900 dark:text-coffee-100 flex items-center gap-2">
+                        <i class="fa-solid fa-arrows-rotate text-blue-600"></i>
+                        ការចែករំលែក & រក្សាទុកទិន្នន័យ (Data Import/Export)
+                    </h3>
+                    <p class="text-sm text-coffee-600 dark:text-coffee-400">
+                        លោកអ្នកអាច ទាញយកទិន្នន័យ (Export) ពី Laptop យកទៅដាក់ចូល (Import) លើ Tablet បានយ៉ាងងាយស្រួលដោយមិនចាំបាច់ប្រើប្រាស់ Server ឡើយ។
+                    </p>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="exportSystemData()" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition flex items-center gap-2">
+                            <i class="fa-solid fa-download"></i> ទាញយកទិន្នន័យបម្រុង (Export JSON)
+                        </button>
+                        <label class="px-4 py-2.5 bg-coffee-200 dark:bg-coffee-800 text-coffee-800 dark:text-coffee-200 text-sm font-semibold rounded-xl hover:bg-coffee-300 dark:hover:bg-coffee-700 cursor-pointer transition flex items-center gap-2">
+                            <i class="fa-solid fa-upload"></i> បញ្ចូលទិន្នន័យ (Import JSON)
+                            <input type="file" id="import-file-input" accept=".json" class="hidden" onchange="importSystemData(event)">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-red-50 dark:bg-red-950/20 p-5 rounded-2xl border border-red-200 dark:border-red-900/40 space-y-3">
+                    <h3 class="font-bold text-red-700 dark:text-red-400 flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        កំណត់ប្រព័ន្ធឡើងវិញ (Reset System Data)
+                    </h3>
+                    <p class="text-xs text-red-600 dark:text-red-300">
+                        ការកំណត់ឡើងវិញនឹងលុបចោលប្រវត្តិលក់ទាំងអស់ ហើយជំនួសដោយទិន្នន័យគំរូដើម។
+                    </p>
+                    <button onclick="resetSystemData()" class="px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 transition">
+                        កំណត់ឡើងវិញ (Reset All)
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL 1: DRINK CUSTOMIZATION -->
+    <div id="item-option-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-darkCard rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
+            <div class="flex items-center justify-between border-b border-coffee-200 dark:border-coffee-900 pb-3">
+                <h3 id="modal-product-name" class="text-lg font-bold text-coffee-900 dark:text-coffee-100">ឈ្មោះភេសជ្ជៈ</h3>
+                <button onclick="closeModal('item-option-modal')" class="text-coffee-400 hover:text-coffee-600 text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-xs font-bold uppercase text-coffee-500">ប្រភេទ/កម្ដៅ (Temperature)</label>
+                <div class="grid grid-cols-3 gap-2" id="temp-selector">
+                    <button type="button" onclick="selectOption('temp', 'Iced')" id="temp-Iced" class="py-2.5 rounded-xl border border-coffee-500 bg-coffee-50 text-coffee-800 font-semibold text-sm flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-glass-water"></i> ទឹកកក (Iced)
+                    </button>
+                    <button type="button" onclick="selectOption('temp', 'Hot')" id="temp-Hot" class="py-2.5 rounded-xl border border-coffee-200 dark:border-coffee-800 text-coffee-700 dark:text-coffee-300 text-sm flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-mug-hot"></i> ក្ដៅ (Hot)
+                    </button>
+                    <button type="button" onclick="selectOption('temp', 'Frappe')" id="temp-Frappe" class="py-2.5 rounded-xl border border-coffee-200 dark:border-coffee-800 text-coffee-700 dark:text-coffee-300 text-sm flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-blender"></i> ក្រឡុក (Frappe)
+                    </button>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-xs font-bold uppercase text-coffee-500">កម្រិតស្ករ (Sugar Level)</label>
+                <div class="grid grid-cols-4 gap-2" id="sugar-selector">
+                    <button type="button" onclick="selectOption('sugar', '100%')" id="sugar-100%" class="py-2 rounded-lg border border-coffee-500 bg-coffee-50 text-coffee-800 text-xs font-semibold">100%</button>
+                    <button type="button" onclick="selectOption('sugar', '70%')" id="sugar-70%" class="py-2 rounded-lg border border-coffee-200 text-coffee-700 dark:text-coffee-300 text-xs font-semibold">70%</button>
+                    <button type="button" onclick="selectOption('sugar', '50%')" id="sugar-50%" class="py-2 rounded-lg border border-coffee-200 text-coffee-700 dark:text-coffee-300 text-xs font-semibold">50%</button>
+                    <button type="button" onclick="selectOption('sugar', '0%')" id="sugar-0%" class="py-2 rounded-lg border border-coffee-200 text-coffee-700 dark:text-coffee-300 text-xs font-semibold">0%</button>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-xs font-bold uppercase text-coffee-500">បន្ថែម (Add-ons)</label>
+                <div class="space-y-2">
+                    <label class="flex items-center justify-between p-3 rounded-xl border border-coffee-200 dark:border-coffee-800 cursor-pointer hover:bg-coffee-50 dark:hover:bg-coffee-900/40">
+                        <span class="text-sm font-medium">បន្ថែម Espresso Shot (+2,000៛)</span>
+                        <input type="checkbox" id="addon-shot" class="w-4 h-4 text-coffee-600 rounded">
+                    </label>
+                </div>
+            </div>
+
+            <button onclick="confirmAddToCart()" class="w-full py-3 bg-coffee-600 hover:bg-coffee-700 text-white font-bold rounded-xl shadow-lg transition">
+                បញ្ជាក់ចូលកន្ត្រក (Add to Cart)
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL 2: ADD / EDIT PRODUCT MODAL (PRICE EDITABLE HERE) -->
+    <div id="product-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-darkCard rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-coffee-200 dark:border-coffee-800 pb-3">
+                <h3 id="product-modal-title" class="text-lg font-bold text-coffee-900 dark:text-coffee-100">បន្ថែម / កែប្រែភេសជ្ជៈ</h3>
+                <button onclick="closeModal('product-modal')" class="text-coffee-400 hover:text-coffee-600 text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <input type="hidden" id="edit-product-id">
+
+            <div>
+                <label class="text-xs font-bold uppercase text-coffee-600 dark:text-coffee-400">ឈ្មោះភេសជ្ជៈ (Product Name)</label>
+                <input type="text" id="edit-product-name" placeholder="ឧទាហរណ៍៖ កាហ្វេទឹកដោះគោ" class="w-full mt-1 p-3 rounded-xl border border-coffee-200 dark:border-coffee-700 bg-coffee-50 dark:bg-coffee-900/40 text-sm focus:ring-2 focus:ring-coffee-500 outline-none">
+            </div>
+
+            <div>
+                <label class="text-xs font-bold uppercase text-coffee-600 dark:text-coffee-400">ប្រភេទ (Category)</label>
+                <select id="edit-product-category" class="w-full mt-1 p-3 rounded-xl border border-coffee-200 dark:border-coffee-700 bg-coffee-50 dark:bg-coffee-900/40 text-sm focus:ring-2 focus:ring-coffee-500 outline-none">
+                    <option value="Coffee">Coffee (កាហ្វេ)</option>
+                    <option value="Tea">Tea (តែ)</option>
+                    <option value="Juice">Juice (ទឹកផ្លែឈើ)</option>
+                    <option value="Bakery">Bakery (នំប៉័ង/នំ)</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="text-xs font-bold uppercase text-coffee-600 dark:text-coffee-400">តម្លៃជាប្រាក់រៀល (Price in KHR ៛)</label>
+                <input type="number" id="edit-product-price" placeholder="6000" class="w-full mt-1 p-3 rounded-xl border border-coffee-200 dark:border-coffee-700 bg-coffee-50 dark:bg-coffee-900/40 text-base font-bold focus:ring-2 focus:ring-coffee-500 outline-none">
+            </div>
+
+            <div>
+                <label class="text-xs font-bold uppercase text-coffee-600 dark:text-coffee-400">រូបតំណាង Emoji / Icon</label>
+                <input type="text" id="edit-product-icon" placeholder="☕" class="w-full mt-1 p-3 rounded-xl border border-coffee-200 dark:border-coffee-700 bg-coffee-50 dark:bg-coffee-900/40 text-sm focus:ring-2 focus:ring-coffee-500 outline-none">
+            </div>
+
+            <div class="pt-2 flex justify-end gap-2">
+                <button onclick="closeModal('product-modal')" class="px-4 py-2.5 rounded-xl border border-coffee-300 dark:border-coffee-700 text-sm font-semibold">បោះបង់</button>
+                <button onclick="saveProduct()" class="px-5 py-2.5 rounded-xl bg-coffee-600 hover:bg-coffee-700 text-white font-bold text-sm shadow-md">រក្សាទុក (Save)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: PAYMENT MODAL -->
+    <div id="payment-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-darkCard rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
+            <div class="flex items-center justify-between border-b border-coffee-200 dark:border-coffee-800 pb-3">
+                <h3 class="text-lg font-bold text-coffee-900 dark:text-coffee-100">ទូទាត់ប្រាក់ (Payment)</h3>
+                <button onclick="closeModal('payment-modal')" class="text-coffee-400 hover:text-coffee-600 text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="bg-coffee-50 dark:bg-coffee-900/40 p-4 rounded-xl text-center border border-coffee-200 dark:border-coffee-800">
+                <span class="text-xs uppercase text-coffee-600 font-bold">ប្រាក់ត្រូវទូទាត់សរុប</span>
+                <div id="modal-pay-amount" class="text-3xl font-extrabold text-coffee-700 dark:text-coffee-300">0 ៛</div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 p-1 bg-coffee-100 dark:bg-coffee-900/60 rounded-xl text-sm font-bold">
+                <button onclick="setPaymentMethod('Cash')" id="pay-tab-cash" class="py-2.5 rounded-lg bg-white dark:bg-coffee-600 text-coffee-800 dark:text-white shadow-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-money-bill-wave"></i> សាច់ប្រាក់ (Cash)
+                </button>
+                <button onclick="setPaymentMethod('KHQR')" id="pay-tab-khqr" class="py-2.5 rounded-lg text-coffee-700 dark:text-coffee-300 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-qrcode"></i> KHQR Bank
+                </button>
+            </div>
+
+            <div id="cash-payment-section" class="space-y-3">
+                <div>
+                    <label class="text-xs font-semibold text-coffee-500">ប្រាក់ទទួលបានពីអតិថិជន (៛)</label>
+                    <input type="number" id="cash-received-input" oninput="calculateChange()" placeholder="0" class="w-full mt-1 p-3 rounded-xl border border-coffee-200 dark:border-coffee-700 bg-coffee-50 dark:bg-coffee-900/40 text-xl font-bold text-right focus:ring-2 focus:ring-coffee-500 outline-none">
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="setFastCash(5000)" class="py-2 bg-coffee-100 dark:bg-coffee-900/50 rounded-lg text-xs font-bold hover:bg-coffee-200">5,000 ៛</button>
+                    <button onclick="setFastCash(10000)" class="py-2 bg-coffee-100 dark:bg-coffee-900/50 rounded-lg text-xs font-bold hover:bg-coffee-200">10,000 ៛</button>
+                    <button onclick="setFastCash(20000)" class="py-2 bg-coffee-100 dark:bg-coffee-900/50 rounded-lg text-xs font-bold hover:bg-coffee-200">20,000 ៛</button>
+                    <button onclick="setFastCash(50000)" class="py-2 bg-coffee-100 dark:bg-coffee-900/50 rounded-lg text-xs font-bold hover:bg-coffee-200">50,000 ៛</button>
+                    <button onclick="setFastCash(100000)" class="py-2 bg-coffee-100 dark:bg-coffee-900/50 rounded-lg text-xs font-bold hover:bg-coffee-200">100,000 ៛</button>
+                    <button onclick="setExactCash()" class="py-2 bg-coffee-200 text-coffee-900 dark:bg-coffee-800 dark:text-coffee-200 rounded-lg text-xs font-bold">គ្រប់ចំនួន</button>
+                </div>
+
+                <div class="flex justify-between items-center p-3 bg-coffee-50 dark:bg-coffee-900/40 rounded-xl text-sm font-semibold">
+                    <span>ប្រាក់អាប់ជូន (Change):</span>
+                    <span id="cash-change-display" class="text-lg font-bold text-coffee-700 dark:text-coffee-300">0 ៛</span>
+                </div>
+            </div>
+
+            <div id="khqr-payment-section" class="space-y-3 hidden text-center">
+                <div class="p-4 bg-white rounded-xl border border-coffee-200 flex flex-col items-center justify-center">
+                    <div class="w-44 h-44 bg-gray-100 rounded-lg flex items-center justify-center border border-dashed border-gray-300 relative">
+                        <i class="fa-solid fa-qrcode text-6xl text-coffee-700"></i>
+                        <span class="absolute bottom-2 text-[10px] bg-red-600 text-white px-2 py-0.5 rounded font-bold">KHQR KH</span>
+                    </div>
+                    <p class="text-xs text-coffee-500 mt-2">ស្កែនដើម្បីទូទាត់ប្រាក់តាមធនាគារ</p>
+                </div>
+            </div>
+
+            <button onclick="completePayment()" class="w-full py-3.5 bg-coffee-600 hover:bg-coffee-700 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-check"></i> បញ្ចប់ការទូទាត់ & ព្រីនវិក្កយបត្រ
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL 4: RECEIPT PREVIEW -->
+    <div id="receipt-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 text-gray-900">
+            <div class="flex items-center justify-between border-b pb-2">
+                <h3 class="font-bold text-base">វិក្កយបត្រ (Receipt)</h3>
+                <button onclick="closeModal('receipt-modal')" class="text-gray-400 hover:text-gray-600 text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div id="thermal-receipt-print" class="receipt-paper p-3 text-xs space-y-2">
+                <div class="text-center space-y-0.5 border-b pb-2 border-dashed border-gray-400">
+                    <h2 class="font-bold text-sm">កាហ្វេព្រៃច្រេស</h2>
+                    <p class="text-[10px]">Kafe Prei Chres Coffee</p>
+                    <p class="text-[10px]">Wifi Password:Coffee98</p>
+                    <p id="receipt-date-time" class="text-[10px] text-gray-600">--/--/---- --:--</p>
+                    <p id="receipt-order-id" class="font-bold text-[10px]">Order #0000</p>
+                </div>
+
+                <div class="flex justify-between text-[10px] font-semibold border-b pb-1 border-gray-300">
+                    <span>បរិយាយ</span>
+                    <span>ចំនួន x តម្លៃ</span>
+                </div>
+
+                <div id="receipt-items-list" class="space-y-1 text-[11px]">
+                    <!-- Dynamic receipt items -->
+                </div>
+
+                <div class="border-t pt-2 border-dashed border-gray-400 space-y-1 text-right text-[11px]">
+                    <div class="flex justify-between">
+                        <span>សរុបរង:</span>
+                        <span id="receipt-subtotal">0 ៛</span>
+                    </div>
+                    <div class="flex justify-between text-red-600">
+                        <span>បញ្ចុះតម្លៃ:</span>
+                        <span id="receipt-discount">-0 ៛</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-sm pt-1 border-t border-gray-300">
+                        <span>សរុបចុងក្រោយ:</span>
+                        <span id="receipt-total">0 ៛</span>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-gray-600">
+                        <span>វិធីសាស្រ្ត:</span>
+                        <span id="receipt-method">Cash</span>
+                    </div>
+                </div>
+
+                <div class="text-center pt-3 border-t border-dashed border-gray-400 text-[10px] text-gray-600 space-y-0.5">
+                    <p class="font-semibold">សូមអរគុណ! សូមអញ្ជើញមកម្ដងទៀត!</p>
+                    <p>Thank You & See You Again!</p>
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="triggerPrintReceipt()" class="flex-1 py-2.5 bg-coffee-600 text-white font-bold rounded-xl text-sm shadow hover:bg-coffee-700 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-print"></i> ពុម្ពវិក្កយបត្រ (Print)
+                </button>
+                <button onclick="closeModal('receipt-modal')" class="px-4 py-2.5 border rounded-xl text-sm font-semibold hover:bg-gray-50">
+                    បិទ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Initial Default Products Data
+        const DEFAULT_PRODUCTS = [
+            { id: 1, name: 'កាហ្វេទឹកដោះគោ (Iced Milk Coffee)', category: 'Coffee', price: 6000, icon: '☕' },
+            { id: 2, name: 'កាហ្វេខ្មៅ (Iced Black Coffee)', category: 'Coffee', price: 5000, icon: '☕' },
+            { id: 3, name: 'តែបៃតងទឹកដោះគោ (Green Tea)', category: 'Tea', price: 6000, icon: '🍵' },
+            { id: 4, name: 'តែក្រូចឆ្មារ (Lemon Tea)', category: 'Tea', price: 5000, icon: '🍹' },
+            { id: 5, name: 'ប៉ាស៊ីយ៉ុងសូដា (Passion Soda)', category: 'Juice', price: 6000, icon: '🥤' }
+        ];
+
+        // State variables
+        let products = [];
+        let cart = [];
+        let ordersHistory = [];
+        let currentCategory = 'All';
+        let currentOrderType = 'Dine-in';
+        let discountAmount = 0;
+        let selectedProductForModal = null;
+        let activePaymentMethod = 'Cash';
+        let currentSelectedOptions = { temp: 'Iced', sugar: '100%', addonShot: false };
+        let btDevice = null;
+        let btCharacteristic = null;
+
+        // Initialize state from LocalStorage
+        function initData() {
+            const storedProducts = localStorage.getItem('preichres_pos_products');
+            if (storedProducts) {
+                products = JSON.parse(storedProducts);
+            } else {
+                products = [...DEFAULT_PRODUCTS];
+                saveProductsToStorage();
+            }
+
+            const storedOrders = localStorage.getItem('preichres_pos_orders');
+            if (storedOrders) {
+                ordersHistory = JSON.parse(storedOrders);
+            }
+
+            renderCategoryPills();
+            renderPOSProducts();
+            renderCart();
+            renderManageProductsTable();
+            renderOrdersTable();
+            renderReports();
+        }
+
+        function saveProductsToStorage() {
+            localStorage.setItem('preichres_pos_products', JSON.stringify(products));
+        }
+
+        function saveOrdersToStorage() {
+            localStorage.setItem('preichres_pos_orders', JSON.stringify(ordersHistory));
+        }
+
+        // Navigation Switcher
+        function switchTab(tab) {
+            ['pos', 'orders', 'products', 'reports', 'settings'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (btn) {
+                    btn.className = "px-4 py-2 rounded-lg flex items-center space-x-2 transition-all text-coffee-700 dark:text-coffee-300 hover:text-coffee-900";
+                }
+            });
+
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tab}`);
+            if (activeBtn) {
+                activeBtn.className = "px-4 py-2 rounded-lg flex items-center space-x-2 transition-all bg-white dark:bg-coffee-700 text-coffee-800 dark:text-white shadow-sm font-semibold";
+            }
+
+            if (tab === 'reports') renderReports();
+            if (tab === 'orders') renderOrdersTable();
+            if (tab === 'products') renderManageProductsTable();
+        }
+
+        // Categories Bar
+        function renderCategoryPills() {
+            const categories = ['All', 'Coffee', 'Tea', 'Juice', 'Bakery'];
+            const container = document.getElementById('category-pills');
+            container.innerHTML = categories.map(cat => {
+                const isActive = cat === currentCategory;
+                const activeClass = isActive 
+                    ? 'bg-coffee-600 text-white shadow-sm' 
+                    : 'bg-coffee-100 dark:bg-coffee-900/50 text-coffee-700 dark:text-coffee-300 hover:bg-coffee-200';
+                return `<button onclick="setCategory('${cat}')" class="px-3.5 py-1.5 rounded-lg whitespace-nowrap font-semibold text-xs transition ${activeClass}">${cat}</button>`;
+            }).join('');
+        }
+
+        function setCategory(cat) {
+            currentCategory = cat;
+            renderCategoryPills();
+            renderPOSProducts();
+        }
+
+        // Render POS Catalog Cards
+        function renderPOSProducts() {
+            const grid = document.getElementById('pos-products-grid');
+            const search = document.getElementById('product-search').value.toLowerCase();
+
+            const filtered = products.filter(p => {
+                const matchCat = currentCategory === 'All' || p.category === currentCategory;
+                const matchSearch = p.name.toLowerCase().includes(search);
+                return matchCat && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-coffee-400 text-sm">មិនមានភេសជ្ជៈដែលត្រូវគ្នានឹងការស្វែងរកឡើយ</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(p => `
+                <div onclick="openItemOptionModal(${p.id})" class="bg-white dark:bg-darkCard border border-coffee-200 dark:border-coffee-900 rounded-2xl p-4 flex flex-col justify-between hover:shadow-md hover:border-coffee-400 cursor-pointer transition transform active:scale-95">
+                    <div class="text-3xl mb-2 text-center">${p.icon || '☕'}</div>
+                    <div class="space-y-1">
+                        <h4 class="font-bold text-sm text-coffee-900 dark:text-gray-100 leading-snug line-clamp-2">${p.name}</h4>
+                        <span class="inline-block text-[10px] px-2 py-0.5 rounded bg-coffee-100 dark:bg-coffee-900/60 text-coffee-700 dark:text-coffee-300 font-semibold">${p.category}</span>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-coffee-100 dark:border-coffee-900 flex items-center justify-between">
+                        <span class="text-coffee-700 dark:text-coffee-300 font-extrabold text-sm">${p.price.toLocaleString()} ៛</span>
+                        <div class="w-7 h-7 rounded-lg bg-coffee-600 text-white flex items-center justify-center text-xs"><i class="fa-solid fa-plus"></i></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Options Modal Logic
+        function openItemOptionModal(productId) {
+            selectedProductForModal = products.find(p => p.id === productId);
+            if (!selectedProductForModal) return;
+
+            document.getElementById('modal-product-name').innerText = selectedProductForModal.name;
+            currentSelectedOptions = { temp: 'Iced', sugar: '100%', addonShot: false };
+            document.getElementById('addon-shot').checked = false;
+            updateOptionUI();
+            openModal('item-option-modal');
+        }
+
+        function selectOption(type, value) {
+            currentSelectedOptions[type] = value;
+            updateOptionUI();
+        }
+
+        function updateOptionUI() {
+            ['Iced', 'Hot', 'Frappe'].forEach(t => {
+                const btn = document.getElementById(`temp-${t}`);
+                if (btn) {
+                    if (currentSelectedOptions.temp === t) {
+                        btn.className = "py-2.5 rounded-xl border border-coffee-500 bg-coffee-100 text-coffee-800 font-bold text-sm flex items-center justify-center gap-1 shadow-sm";
+                    } else {
+                        btn.className = "py-2.5 rounded-xl border border-coffee-200 dark:border-coffee-800 text-coffee-700 dark:text-coffee-300 text-sm flex items-center justify-center gap-1";
+                    }
+                }
+            });
+
+            ['100%', '70%', '50%', '0%'].forEach(s => {
+                const btn = document.getElementById(`sugar-${s}`);
+                if (btn) {
+                    if (currentSelectedOptions.sugar === s) {
+                        btn.className = "py-2 rounded-lg border border-coffee-500 bg-coffee-100 text-coffee-800 text-xs font-bold shadow-sm";
+                    } else {
+                        btn.className = "py-2 rounded-lg border border-coffee-200 text-coffee-700 dark:text-coffee-300 text-xs font-semibold";
+                    }
+                }
+            });
+        }
+
+        function confirmAddToCart() {
+            if (!selectedProductForModal) return;
+            const extraShot = document.getElementById('addon-shot').checked;
+            
+            let extraPrice = 0;
+            let optionsText = `${currentSelectedOptions.temp}, ស្ករ ${currentSelectedOptions.sugar}`;
+            if (extraShot) {
+                extraPrice += 2000;
+                optionsText += `, +Espresso Shot`;
+            }
+
+            const cartItem = {
+                cartId: Date.now(),
+                productId: selectedProductForModal.id,
+                name: selectedProductForModal.name,
+                unitPrice: selectedProductForModal.price + extraPrice,
+                qty: 1,
+                options: optionsText
+            };
+
+            cart.push(cartItem);
+            closeModal('item-option-modal');
+            renderCart();
+        }
+
+        // Cart Management
+        function renderCart() {
+            const container = document.getElementById('cart-items-container');
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-coffee-400 py-12 space-y-2">
+                        <i class="fa-solid fa-basket-shopping text-4xl"></i>
+                        <p class="text-xs">មិនទាន់មានទំនិញក្នុងកន្ត្រកឡើយ</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = cart.map(item => `
+                    <div class="p-3 bg-coffee-50/50 dark:bg-coffee-900/30 rounded-xl border border-coffee-200 dark:border-coffee-800/80 flex items-center justify-between gap-2">
+                        <div class="flex-1 min-w-0">
+                            <h5 class="font-bold text-xs text-coffee-900 dark:text-gray-100 truncate">${item.name}</h5>
+                            <p class="text-[10px] text-coffee-500">${item.options}</p>
+                            <span class="text-xs font-semibold text-coffee-700 dark:text-coffee-300">${item.unitPrice.toLocaleString()} ៛</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="updateQty(${item.cartId}, -1)" class="w-6 h-6 rounded-md bg-white dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-700 flex items-center justify-center text-xs font-bold">-</button>
+                            <span class="text-xs font-bold w-4 text-center">${item.qty}</span>
+                            <button onclick="updateQty(${item.cartId}, 1)" class="w-6 h-6 rounded-md bg-white dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-700 flex items-center justify-center text-xs font-bold">+</button>
+                            <button onclick="removeFromCart(${item.cartId})" class="text-red-500 hover:text-red-700 text-xs pl-1"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            calculateCartTotals();
+        }
+
+        function updateQty(cartId, delta) {
+            const item = cart.find(i => i.cartId === cartId);
+            if (!item) return;
+            item.qty += delta;
+            if (item.qty <= 0) {
+                cart = cart.filter(i => i.cartId !== cartId);
+            }
+            renderCart();
+        }
+
+        function removeFromCart(cartId) {
+            cart = cart.filter(i => i.cartId !== cartId);
+            renderCart();
+        }
+
+        function clearCart() {
+            cart = [];
+            discountAmount = 0;
+            renderCart();
+        }
+
+        function setOrderType(type) {
+            currentOrderType = type;
+            const btnDine = document.getElementById('type-dinein');
+            const btnTake = document.getElementById('type-takeaway');
+            if (type === 'Dine-in') {
+                btnDine.className = "px-3 py-1.5 rounded-md bg-white dark:bg-coffee-600 text-coffee-800 dark:text-white shadow-sm font-semibold";
+                btnTake.className = "px-3 py-1.5 rounded-md text-coffee-700 dark:text-coffee-300";
+            } else {
+                btnTake.className = "px-3 py-1.5 rounded-md bg-white dark:bg-coffee-600 text-coffee-800 dark:text-white shadow-sm font-semibold";
+                btnDine.className = "px-3 py-1.5 rounded-md text-coffee-700 dark:text-coffee-300";
+            }
+        }
+
+        function promptDiscount() {
+            const input = prompt("បញ្ចូលចំនួនទឹកប្រាក់បញ្ចុះតម្លៃ (៛):", discountAmount);
+            if (input !== null) {
+                discountAmount = parseInt(input) || 0;
+                calculateCartTotals();
+            }
+        }
+
+        function calculateCartTotals() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.unitPrice * item.qty), 0);
+            const grandTotal = Math.max(0, subtotal - discountAmount);
+
+            document.getElementById('cart-subtotal').innerText = `${subtotal.toLocaleString()} ៛`;
+            document.getElementById('cart-discount').innerText = `-${discountAmount.toLocaleString()} ៛`;
+            document.getElementById('cart-total').innerText = `${grandTotal.toLocaleString()} ៛`;
+        }
+
+        // Product Management (EDITING & ADDING PRODUCT PRICES)
+        function renderManageProductsTable() {
+            const tbody = document.getElementById('manage-products-table');
+            tbody.innerHTML = products.map(p => `
+                <tr class="hover:bg-coffee-50/50 dark:hover:bg-coffee-900/30 transition">
+                    <td class="p-4 text-2xl">${p.icon || '☕'}</td>
+                    <td class="p-4 font-bold text-coffee-900 dark:text-gray-100">${p.name}</td>
+                    <td class="p-4"><span class="px-2 py-1 bg-coffee-100 dark:bg-coffee-900/60 text-coffee-800 dark:text-coffee-300 text-xs font-semibold rounded">${p.category}</span></td>
+                    <td class="p-4 font-extrabold text-coffee-700 dark:text-coffee-300">${p.price.toLocaleString()} ៛</td>
+                    <td class="p-4 text-center space-x-2">
+                        <button onclick="openProductModal(${p.id})" class="px-3 py-1.5 bg-coffee-100 text-coffee-800 dark:bg-coffee-800 dark:text-coffee-200 rounded-lg text-xs font-bold hover:bg-coffee-200"><i class="fa-solid fa-pen-to-square"></i> កែប្រែ (Edit)</button>
+                        <button onclick="deleteProduct(${p.id})" class="px-3 py-1.5 bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400 rounded-lg text-xs font-bold hover:bg-red-200"><i class="fa-solid fa-trash"></i> លុប</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openProductModal(productId = null) {
+            const title = document.getElementById('product-modal-title');
+            if (productId) {
+                const p = products.find(prod => prod.id === productId);
+                if (!p) return;
+                title.innerText = "កែប្រែព័ត៌មាន និងតម្លៃភេសជ្ជៈ";
+                document.getElementById('edit-product-id').value = p.id;
+                document.getElementById('edit-product-name').value = p.name;
+                document.getElementById('edit-product-category').value = p.category;
+                document.getElementById('edit-product-price').value = p.price;
+                document.getElementById('edit-product-icon').value = p.icon || '☕';
+            } else {
+                title.innerText = "បន្ថែមភេសជ្ជៈថ្មី";
+                document.getElementById('edit-product-id').value = '';
+                document.getElementById('edit-product-name').value = '';
+                document.getElementById('edit-product-category').value = 'Coffee';
+                document.getElementById('edit-product-price').value = '';
+                document.getElementById('edit-product-icon').value = '☕';
+            }
+            openModal('product-modal');
+        }
+
+        function saveProduct() {
+            const idVal = document.getElementById('edit-product-id').value;
+            const name = document.getElementById('edit-product-name').value.trim();
+            const category = document.getElementById('edit-product-category').value;
+            const price = parseInt(document.getElementById('edit-product-price').value);
+            const icon = document.getElementById('edit-product-icon').value.trim() || '☕';
+
+            if (!name || isNaN(price)) {
+                alert("សូមបញ្ចូលឈ្មោះ និងតម្លៃត្រឹមត្រូវ!");
+                return;
+            }
+
+            if (idVal) {
+                // Update Existing
+                const p = products.find(prod => prod.id === parseInt(idVal));
+                if (p) {
+                    p.name = name;
+                    p.category = category;
+                    p.price = price;
+                    p.icon = icon;
+                }
+            } else {
+                // Add New
+                const newProduct = {
+                    id: Date.now(),
+                    name,
+                    category,
+                    price,
+                    icon
+                };
+                products.push(newProduct);
+            }
+
+            saveProductsToStorage();
+            closeModal('product-modal');
+            renderPOSProducts();
+            renderManageProductsTable();
+        }
+
+        function deleteProduct(productId) {
+            if (confirm("តើអ្នកប្រាកដជាចង់លុបមុខទំនិញនេះមែនទេ?")) {
+                products = products.filter(p => p.id !== productId);
+                saveProductsToStorage();
+                renderPOSProducts();
+                renderManageProductsTable();
+            }
+        }
+
+        // Payment & Modal Logic
+        function openPaymentModal() {
+            if (cart.length === 0) {
+                alert("សូមជ្រើសរើសទំនិញចូលកន្ត្រកជាមុនសិន!");
+                return;
+            }
+            const subtotal = cart.reduce((sum, item) => sum + (item.unitPrice * item.qty), 0);
+            const grandTotal = Math.max(0, subtotal - discountAmount);
+
+            document.getElementById('modal-pay-amount').innerText = `${grandTotal.toLocaleString()} ៛`;
+            document.getElementById('cash-received-input').value = grandTotal;
+            calculateChange();
+            openModal('payment-modal');
+        }
+
+        function setPaymentMethod(method) {
+            activePaymentMethod = method;
+            const cashTab = document.getElementById('pay-tab-cash');
+            const khqrTab = document.getElementById('pay-tab-khqr');
+            const cashSec = document.getElementById('cash-payment-section');
+            const khqrSec = document.getElementById('khqr-payment-section');
+
+            if (method === 'Cash') {
+                cashTab.className = "py-2.5 rounded-lg bg-white dark:bg-coffee-600 text-coffee-800 dark:text-white shadow-sm flex items-center justify-center gap-2 font-bold";
+                khqrTab.className = "py-2.5 rounded-lg text-coffee-700 dark:text-coffee-300 flex items-center justify-center gap-2";
+                cashSec.classList.remove('hidden');
+                khqrSec.classList.add('hidden');
+            } else {
+                khqrTab.className = "py-2.5 rounded-lg bg-white dark:bg-coffee-600 text-coffee-800 dark:text-white shadow-sm flex items-center justify-center gap-2 font-bold";
+                cashTab.className = "py-2.5 rounded-lg text-coffee-700 dark:text-coffee-300 flex items-center justify-center gap-2";
+                khqrSec.classList.remove('hidden');
+                cashSec.classList.add('hidden');
+            }
+        }
+
+        function setFastCash(amount) {
+            document.getElementById('cash-received-input').value = amount;
+            calculateChange();
+        }
+
+        function setExactCash() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.unitPrice * item.qty), 0);
+            const grandTotal = Math.max(0, subtotal - discountAmount);
+            document.getElementById('cash-received-input').value = grandTotal;
+            calculateChange();
+        }
+
+        function calculateChange() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.unitPrice * item.qty), 0);
+            const grandTotal = Math.max(0, subtotal - discountAmount);
+            const received = parseInt(document.getElementById('cash-received-input').value) || 0;
+            const change = Math.max(0, received - grandTotal);
+            document.getElementById('cash-change-display').innerText = `${change.toLocaleString()} ៛`;
+        }
+
+        function completePayment() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.unitPrice * item.qty), 0);
+            const grandTotal = Math.max(0, subtotal - discountAmount);
+
+            const newOrder = {
+                id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
+                date: new Date().toLocaleString('km-KH'),
+                type: currentOrderType,
+                items: [...cart],
+                subtotal: subtotal,
+                discount: discountAmount,
+                total: grandTotal,
+                paymentMethod: activePaymentMethod
+            };
+
+            ordersHistory.unshift(newOrder);
+            saveOrdersToStorage();
+
+            closeModal('payment-modal');
+            showReceiptModal(newOrder);
+            clearCart();
+        }
+
+        function showReceiptModal(order) {
+            document.getElementById('receipt-order-id').innerText = order.id;
+            document.getElementById('receipt-date-time').innerText = order.date;
+            document.getElementById('receipt-subtotal').innerText = `${order.subtotal.toLocaleString()} ៛`;
+            document.getElementById('receipt-discount').innerText = `-${order.discount.toLocaleString()} ៛`;
+            document.getElementById('receipt-total').innerText = `${order.total.toLocaleString()} ៛`;
+            document.getElementById('receipt-method').innerText = order.paymentMethod;
+
+            const list = document.getElementById('receipt-items-list');
+            list.innerHTML = order.items.map(i => `
+                <div class="flex justify-between">
+                    <div>
+                        <p class="font-semibold">${i.name}</p>
+                        <p class="text-[9px] text-gray-500">${i.options}</p>
+                    </div>
+                    <span class="font-bold">${i.qty} x ${i.unitPrice.toLocaleString()}៛</span>
+                </div>
+            `).join('');
+
+            openModal('receipt-modal');
+        }
+
+        function triggerPrintReceipt() {
+            window.print();
+        }
+
+        // Reports View
+        function renderReports() {
+            const totalRev = ordersHistory.reduce((sum, o) => sum + o.total, 0);
+            const cashRev = ordersHistory.filter(o => o.paymentMethod === 'Cash').reduce((sum, o) => sum + o.total, 0);
+            const khqrRev = ordersHistory.filter(o => o.paymentMethod === 'KHQR').reduce((sum, o) => sum + o.total, 0);
+
+            document.getElementById('report-total-revenue').innerText = `${totalRev.toLocaleString()} ៛`;
+            document.getElementById('report-total-orders').innerText = ordersHistory.length;
+            document.getElementById('report-cash-total').innerText = `${cashRev.toLocaleString()} ៛`;
+            document.getElementById('report-khqr-total').innerText = `${khqrRev.toLocaleString()} ៛`;
+
+            // Top items map
+            const itemCounts = {};
+            ordersHistory.forEach(o => {
+                o.items.forEach(i => {
+                    if (!itemCounts[i.name]) itemCounts[i.name] = { qty: 0, rev: 0 };
+                    itemCounts[i.name].qty += i.qty;
+                    itemCounts[i.name].rev += (i.qty * i.unitPrice);
+                });
+            });
+
+            const sorted = Object.entries(itemCounts).sort((a, b) => b[1].qty - a[1].qty);
+            const tbody = document.getElementById('top-items-tbody');
+            tbody.innerHTML = sorted.map(([name, stat]) => `
+                <tr>
+                    <td class="p-3 font-semibold text-coffee-900 dark:text-gray-100">${name}</td>
+                    <td class="p-3">${stat.qty} កែវ</td>
+                    <td class="p-3 text-right font-bold text-coffee-700 dark:text-coffee-300">${stat.rev.toLocaleString()} ៛</td>
+                </tr>
+            `).join('');
+        }
+
+        // Render Orders Table
+        function renderOrdersTable() {
+            const tbody = document.getElementById('orders-table-body');
+            tbody.innerHTML = ordersHistory.map(o => `
+                <tr class="hover:bg-coffee-50/50 dark:hover:bg-coffee-900/30 transition">
+                    <td class="p-4 font-bold text-coffee-700 dark:text-coffee-300">${o.id}</td>
+                    <td class="p-4 text-xs text-coffee-500">${o.date}</td>
+                    <td class="p-4"><span class="px-2 py-1 bg-coffee-100 text-coffee-800 text-xs font-bold rounded">${o.type}</span></td>
+                    <td class="p-4 text-xs">${o.items.map(i => `${i.name} (x${i.qty})`).join(', ')}</td>
+                    <td class="p-4"><span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded">${o.paymentMethod}</span></td>
+                    <td class="p-4 text-right font-extrabold text-coffee-800 dark:text-coffee-200">${o.total.toLocaleString()} ៛</td>
+                    <td class="p-4 text-center">
+                        <button onclick='showReceiptModal(${JSON.stringify(o)})' class="px-3 py-1 bg-coffee-600 text-white text-xs font-bold rounded-lg hover:bg-coffee-700">មើលវិក្កយបត្រ</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Bluetooth Thermal Printer Hook
+        async function connectBluetoothPrinter() {
+            try {
+                btDevice = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+                });
+                const server = await btDevice.gatt.connect();
+                document.getElementById('bt-status').innerText = btDevice.name || "ម៉ាស៊ីនពុម្ពបានភ្ជាប់";
+                document.getElementById('bt-icon').className = "fa-solid fa-print text-emerald-500";
+            } catch (err) {
+                alert("មិនអាចភ្ជាប់ Bluetooth បានទេ: " + err.message);
+            }
+        }
+
+        function testPrinter() {
+            alert("សាកល្បងពុម្ពត្រូវបានផ្ញើទៅកាន់ម៉ាស៊ីនពុម្ព!");
+            window.print();
+        }
+
+        // Backup Data
+        function exportSystemData() {
+            const data = { products, ordersHistory };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `preichres_pos_backup_${Date.now()}.json`;
+            a.click();
+        }
+
+        function importSystemData(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const parsed = JSON.parse(evt.target.result);
+                    if (parsed.products) products = parsed.products;
+                    if (parsed.ordersHistory) ordersHistory = parsed.ordersHistory;
+                    saveProductsToStorage();
+                    saveOrdersToStorage();
+                    initData();
+                    alert("បញ្ចូលទិន្នន័យបានជោគជ័យ!");
+                } catch (err) {
+                    alert("ឯកសារ JSON មិនត្រឹមត្រូវ!");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function resetSystemData() {
+            if (confirm("តើអ្នកពិតជាចង់កំណត់ទិន្នន័យទាំងអស់ឡើងវិញមែនទេ?")) {
+                localStorage.clear();
+                products = [...DEFAULT_PRODUCTS];
+                ordersHistory = [];
+                saveProductsToStorage();
+                initData();
+            }
+        }
+
+        // Helper Modal Functions
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+        }
+
+        // App initialization
+        window.onload = function() {
+            initData();
+        };
+    </script>
+</body>
+</html>
